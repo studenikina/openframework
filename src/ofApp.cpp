@@ -4,12 +4,12 @@
 
 const int N = 256;		//Number of bands in spectrum
 float spectrum[ N ];	//Smoothed spectrum values
-float Rad = 500;		//Cloud raduis parameter
-float Vel = 0.1;		//Cloud points velocity parameter
+float Rad = 600;		//Cloud raduis parameter
+float Vel = 0.5;		//Cloud points velocity parameter
 int bandRad = 2;		//Band index in spectrum, affecting Rad value
 int bandVel = 100;		//Band index in spectrum, affecting Vel value
 
-const int n = 300;		//Number of cloud points
+const int n = 500;		//Number of cloud points
 
 //Offsets for Perlin noise calculation for points
 float tx[n], ty[n];
@@ -18,6 +18,9 @@ float bg_transparent = 120;
 float time0 = 0;		//Time value, used for dt computing
 int t;
 int seed = 325;
+
+int posMs = 0;
+bool isPlay = 1;
 string filePath;
 string fileName;
 string fileExtension;
@@ -77,39 +80,39 @@ void testApp::update(){
 	Rad = ofMap( spectrum[ bandRad ], 1, 3, 400, 800, true );
 	Vel = ofMap( spectrum[ bandVel ], 0, 0.1, 0.05, 0.5 );
 
-float d = 3;
-if (fabs((time / d) - round(time / d)) < 0.01) {
-	srand(seed);
-	t = 0;
-	pos = rand() % 3;
-	sign = rand() % 2;
-	seed = rand();
-	sign == 0 ? a[pos] += 1 : a[pos] -= 1;
-	if (a[pos] < 0) {
-		a[pos] = 0;
-		sign = (sign + 1) % 2;
-	} else if (a[pos] > 255) {
-		a[pos] = 255;
-		sign = (sign + 1) % 2;
-	}
-	t++;
-} else if (t < 51) {
-	sign == 0 ? a[pos] += 1 : a[pos] -= 1;
-	if (a[pos] < 0) {
-		a[pos] = 0;
-		sign = (sign + 1) % 2;
-	} else if (a[pos] > 255) {
-		a[pos] = 255;
-		sign = (sign + 1) % 2;
-	}
-			t++;
-	}
+    float d = 3;
+    if (fabs((time / d) - round(time / d)) < 0.01) {
+        srand(seed);
+        t = 0;
+        pos = rand() % 3;
+        sign = rand() % 2;
+        seed = rand();
+        sign == 0 ? a[pos] += 1 : a[pos] -= 1;
+        if (a[pos] < 0) {
+            a[pos] = 0;
+            sign = (sign + 1) % 2;
+        } else if (a[pos] > 255) {
+            a[pos] = 255;
+            sign = (sign + 1) % 2;
+        }
+        t++;
+    } else if (t < 51) {
+        sign == 0 ? a[pos] += 1 : a[pos] -= 1;
+        if (a[pos] < 0) {
+            a[pos] = 0;
+            sign = (sign + 1) % 2;
+        } else if (a[pos] > 255) {
+            a[pos] = 255;
+            sign = (sign + 1) % 2;
+        }
+                t++;
+        }
 
 
 
 
 	//Update particles positions
-	for (int j=0; j<n; j++) {
+	for (int j = 0; j < n; j++) {
 		tx[j] += Vel * dt;	//move offset
 		ty[j] += Vel * dt;	//move offset
 		//Calculate Perlin's noise in [-1, 1] and
@@ -129,7 +132,7 @@ if (fabs((time / d) - round(time / d)) < 0.01) {
 //--------------------------------------------------------------
 void testApp::draw(){
 	ofBackground( 0, 0, 0 );	//Set up the background
-	bg.draw(0, 0,ofGetWidth(), ofGetHeight());
+	bg.draw(0, 0, ofGetWidth(), ofGetHeight());
 
 	ofEnableAlphaBlending();
 	ofSetColor(0, 0, 0, bg_transparent);
@@ -137,7 +140,7 @@ void testApp::draw(){
 	ofDisableAlphaBlending();
 
 	ofSetHexColor(0xffffff);
-	ofDrawBitmapString(fileName.substr(0,fileName.length()-4), ofGetWidth() / 2,60);
+	ofDrawBitmapString(fileName, 10, 60);
 
 
 	//Draw background rect for spectrum
@@ -199,8 +202,10 @@ void testApp::draw(){
 
 //--------------------------------------------------------------
 void testApp::keyPressed(int key){
-	if (key == 'n')
-		startPlaying();
+    cout << key << " ";
+	if (key == 110 || key == 242) {
+        startPlaying();
+	}
  	if (key == '-') {
 		volume > 0.0f ? volume -= 0.1f : volume = 0.0f;
 		sound.setVolume(volume);
@@ -210,11 +215,14 @@ void testApp::keyPressed(int key){
 		sound.setVolume(volume);
 	}
 	if (key == ' ') {
-		if (sound.isPlaying()) {
-			sound.setPaused(true);
-		} else {
-			sound.setPaused(false);
-		}
+	    if (isPlay) {
+            posMs = sound.getPositionMS();
+            sound.stop();
+	    } else {
+            sound.play();
+            sound.setPositionMS(posMs);
+	    }
+	    isPlay = !isPlay;
 	}
 
 }
@@ -230,6 +238,7 @@ void testApp::startPlaying() {
 			fileName = openFileResult.getName();
 			fileExtension = fileName.substr(fileName.length()-3, 3);
 			cerr << fileExtension << "     " << fileName;
+			cerr << fileName;
 			fileName = fileName.substr(0,fileName.length()-4);
 			if (fileExtension == "mp3") {
 				flag = 1;
