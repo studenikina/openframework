@@ -26,6 +26,7 @@ public:
 	ofImage bg;
 	void keyPressed(int key);
 	void keyReleased(int key);
+	void startPlaying();
 	void mouseMoved(int x, int y);
 	void mouseDragged(int x, int y, int button);
 	void mouseReleased(int x, int y, int button);

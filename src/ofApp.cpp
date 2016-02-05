@@ -18,16 +18,19 @@ float bg_transparent = 120;
 float time0 = 0;		//Time value, used for dt computing
 int t;
 int seed = 325;
+string filePath;
+string fileName;
+string fileExtension;
 int pos = 0;
+float volume = 0.7f;
 int sign = 0;
+bool flag;
 int a[3] = { 0, 51, 102};
 //--------------------------------------------------------------
 void testApp::setup(){
 	//Set up sound sample
 	bg.loadImage("new.jpg");
-	sound.loadSound( "new.mp3", true );
-	sound.setLoop( true );
-	sound.play();
+
 
 	//Set spectrum values to 0
 	for (int i=0; i<N; i++) {
@@ -134,7 +137,7 @@ void testApp::draw(){
 	ofDisableAlphaBlending();
 
 	ofSetHexColor(0xffffff);
-	ofDrawBitmapString("NOIZE MC", ofGetWidth() / 2,60);
+	ofDrawBitmapString(fileName.substr(0,fileName.length()-4), ofGetWidth() / 2,60);
 
 
 	//Draw background rect for spectrum
@@ -192,10 +195,59 @@ void testApp::draw(){
   //  ofSaveScreen(fileName);
 }
 
+
+
 //--------------------------------------------------------------
 void testApp::keyPressed(int key){
-}
+	if (key == 'n')
+		startPlaying();
+ 	if (key == '-') {
+		volume > 0.0f ? volume -= 0.1f : volume = 0.0f;
+		sound.setVolume(volume);
+	}
+	if (key == '+') {
+		volume < 1.0f ? volume += 0.1f : volume = 1.0f;
+		sound.setVolume(volume);
+	}
+	if (key == ' ') {
+		if (sound.isPlaying()) {
+			sound.setPaused(true);
+		} else {
+			sound.setPaused(false);
+		}
+	}
 
+}
+//--------------------------------------------------------------
+void testApp::startPlaying() {
+	flag = 0;
+	sound.stop();
+	filePath = "";
+	while (flag == 0) {
+		ofFileDialogResult openFileResult= ofSystemLoadDialog("Select a mp3");
+		if (openFileResult.bSuccess) {
+			filePath = openFileResult.getPath();
+			fileName = openFileResult.getName();
+			fileExtension = fileName.substr(fileName.length()-3, 3);
+			cerr << fileExtension << "     " << fileName;
+			fileName = fileName.substr(0,fileName.length()-4);
+			if (fileExtension == "mp3") {
+				flag = 1;
+			}
+		} else {
+			flag = 1;
+		}
+
+	}
+
+
+	if (filePath != "") {
+		sound.loadSound( filePath, true );
+		sound.setLoop( true );
+		sound.play();
+	}
+
+}
 //--------------------------------------------------------------
 void testApp::keyReleased(int key){
 
